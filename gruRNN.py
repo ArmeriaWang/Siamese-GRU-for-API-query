@@ -31,6 +31,7 @@ class GRURNN(object):
         self.mask_s2 = tf.placeholder(tf.float64, [self.batch_size, num_step])
 
         self.hidden_neural_size = config.hidden_neural_size
+        # cell_outputs2的reuse为True，表示两个RNN共用一套参数
         with tf.name_scope('gru_output_layer'):
             self.cell_outputs1 = self.singleRNN(x=self.input_data_s1, attn_len=config.max_len, scope='side1', cell='gru', reuse=None)
             self.cell_outputs2 = self.singleRNN(x=self.input_data_s2, attn_len=config.max_len, scope='side1', cell='gru', reuse=True)
@@ -44,6 +45,7 @@ class GRURNN(object):
         with tf.name_scope('loss'):
             diff = tf.abs(tf.subtract(self.sent1, self.sent2), name='err_l1')
             diff = tf.reduce_sum(diff, axis=1)
+            # 预测结果被定义为两个RNN末尾输出的差向量的一阶范数的exp
             self.sim = tf.clip_by_value(tf.exp(-1.0 * diff), 1e-7, 1.0 - 1e-7)
             # 损失函数为MSE
             self.mse = tf.reduce_mean(tf.square(tf.subtract(self.sim, self.target)))
