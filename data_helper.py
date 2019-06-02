@@ -19,13 +19,24 @@ def load_data(max_len, data_path, embed_dim):
 	data_set = load_set(data_path, embed_dim)
 	data_set_x1, data_set_x2, data_set_y = data_set
 	
-	new_data_set_x1 = np.zeros([len(data_set[0]), max_len, embed_dim], dtype=float)
-	new_data_set_x2 = np.zeros([len(data_set[1]), max_len, embed_dim], dtype=float)
-	new_data_set_y = np.zeros([len(data_set[2])], dtype=float)
+    n_samples = len(data_set_x1)
+    
+    # 打散数据集
+    sidx = np.random.permutation(n_samples)
+    
+    data_set_x1 = [data_set_x1[s] for s in sidx]
+    data_set_x2 = [data_set_x2[s] for s in sidx]
+    data_set_y = [data_set_y[s] for s in sidx]
+    
+    data_set = [data_set_x1, data_set_x2, data_set_y]
+    
+    new_data_set_x1 = np.zeros([n_samples, max_len, embed_dim], dtype=float)
+    new_data_set_x2 = np.zeros([n_samples, max_len, embed_dim], dtype=float)
+    new_data_set_y = np.zeros([n_samples], dtype=float)
 
-	# mask用于标记句子结束位置
-	mask_x1 = np.zeros([len(data_set[0]), max_len])
-	mask_x2 = np.zeros([len(data_set[1]), max_len])
+    # mask用于标记句子结束位置
+    mask_x1 = np.zeros([n_samples, max_len])
+    mask_x2 = np.zeros([n_samples, max_len])
 
 	def padding_and_generate_mask(x1, x2, y, new_x1, new_x2, new_y, mask_x1, mask_x2):
 		for i, (x1, x2, y) in enumerate(zip(x1, x2, y)):
