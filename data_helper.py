@@ -1,0 +1,71 @@
+import numpy as np
+import pickle
+
+# 载入数据集
+def load_set(data_path, embed_dim):
+	with open(data_path, 'rb') as f:
+		data_list = pickle.load(f)
+	s0 = []
+	s1 = []
+	labels = []
+	for item in data_list:
+		s0.append(item[2])
+		s1.append(item[4])
+		labels.append(float(item[0]))
+	return [s0, s1, labels]
+
+# 根据max_len对数据集格式化
+def load_data(max_len, data_path, embed_dim):
+	data_set = load_set(data_path, embed_dim)
+	data_set_x1, data_set_x2, data_set_y = data_set
+	
+	new_data_set_x1 = np.zeros([len(data_set[0]), max_len, embed_dim], dtype=float)
+	new_data_set_x2 = np.zeros([len(data_set[1]), max_len, embed_dim], dtype=float)
+	new_data_set_y = np.zeros([len(data_set[2])], dtype=float)
+
+	# mask用于标记句子结束位置
+	mask_x1 = np.zeros([len(data_set[0]), max_len])
+	mask_x2 = np.zeros([len(data_set[1]), max_len])
+
+	def padding_and_generate_mask(x1, x2, y, new_x1, new_x2, new_y, mask_x1, mask_x2):
+		for i, (x1, x2, y) in enumerate(zip(x1, x2, y)):
+			new_y[i] = y;
+			if len(x1) <= max_len:
+				new_x1[i, 0:len(x1)] = x1
+				mask_x1[i, len(x1) - 1] = 1
+			else:
+				new_x1[i, :, :] = (x1[0:maxlen])
+				mask_x1[i, max_len - 1] = 1
+			if len(x2) <= max_len:
+				new_x2[i, 0:len(x2)] = x2
+				mask_x2[i, len(x2) - 1] = 1
+			else:
+				new_x2[i, :, :] = (x2[0:maxlen])
+				mask_x2[i, max_len - 1] = 1
+
+		new_set = [new_x1, new_x2, new_y, mask_x1, mask_x2]
+		del new_x1, new_x2, new_y
+		return new_set
+
+	final_set = padding_and_generate_mask(data_set[0], data_set[1], data_set[2], 
+		new_data_set_x1, new_data_set_x2, new_data_set_y, mask_x1, mask_x2)
+	return final_set
+
+# 划分batch
+def batch_iter(data, batch_size):
+    x1, x2, y, mask_x1, mask_x2 = data
+    x1 = np.array(x1)
+    x2 = np.array(x2)
+    y = np.array(y)
+    data_size = len(x1)
+    num_batches_per_epoch = int((data_size - 1) / batch_size) + 1
+    for batch_index in range(num_batches_per_epoch):
+        start_index = batch_index * batch_size
+        end_index = min((batch_index + 1) * batch_size, data_size)
+        return_x1 = x1[start_index:end_index]
+        return_x2 = x2[start_index:end_index]
+        return_y = y[start_index:end_index]
+        return_mask_x1 = mask_x1[start_index:end_index]
+        return_mask_x2 = mask_x2[start_index:end_index]
+
+        yield [return_x1, return_x2, return_y, return_mask_x1, return_mask_x2]
