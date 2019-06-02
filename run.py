@@ -5,7 +5,6 @@ import os
 import time
 import data_helper
 from gruRNN import GRURNN
-from gensim.models import KeyedVectors
 from scipy.stats import pearsonr
 
 flags = tf.app.flags
