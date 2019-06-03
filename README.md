@@ -18,3 +18,4 @@
 ### 目前存在问题
  - 6月1日，模型里写错了loss函数，结果训练有效果  
  - 6月2日，修改模型loss函数为MSE（[参考论文](https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12195)），tensorboard曲线光滑度设为0.995，未见loss有下降趋势。再尝试回滚到昨天的版本查找哪里出了问题，结果仍未见loss有下降趋势（自闭）  
+ - 6月3日晚修复上述致命bug，准备加入注意力机制和调参
