@@ -49,7 +49,7 @@ class GRURNN(object):
             self.sent2 = tf.reduce_sum(self.cell_outputs2 * self.mask_s2[:, :, None], axis=1)
 
         with tf.name_scope('loss'):
-            diff = tf.abs(tf.subtract(self.sent1, self.sent2), name='err_l1')
+            diff = tf.abs(tf.subtract(self.sent1, self.sent2), name="err_l1")
             diff = tf.reduce_sum(diff, axis=1)
             # 预测结果被定义为两个RNN末尾输出的差向量的一阶范数的exp
             self.sim = tf.clip_by_value(tf.exp(-1.0 * diff), 1e-7, 1.0 - 1e-7)
@@ -57,7 +57,7 @@ class GRURNN(object):
             self.mse = tf.reduce_mean(tf.square(tf.subtract(self.sim, self.target)))
 
         # 加入摘要
-        mse_summary = tf.summary.scalar(name="mse_summary", tensor=self.mse)
+        mse_summary = tf.summary.scalar(name="train_mse", tensor=self.mse)
 
         if not is_training:
             return
@@ -76,7 +76,6 @@ class GRURNN(object):
                 grad_summaries.append(sparsity_summary)
         self.grad_summaries_merged = tf.summary.merge(grad_summaries)
         self.summary = tf.summary.merge([mse_summary, self.grad_summaries_merged])
-
 
         optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.lr, epsilon=1e-6)
         # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.lr)

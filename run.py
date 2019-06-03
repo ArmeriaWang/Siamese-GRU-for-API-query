@@ -10,8 +10,8 @@ from scipy.stats import pearsonr
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('batch_size', 64, 'the batch_size of the training procedure')
-flags.DEFINE_float('lr', 0.0001, 'the learning rate')
+flags.DEFINE_integer('batch_size', 128, 'the batch_size of the training procedure')
+flags.DEFINE_float('lr', 0.0002, 'the learning rate')
 flags.DEFINE_integer('max_grad_norm', 5, 'max_grad_norm')
 flags.DEFINE_integer('emdedding_dim', 20, 'embedding dim')
 flags.DEFINE_integer('hidden_neural_size', 25, 'GRU hidden neural size')
@@ -96,7 +96,7 @@ def evaluate(model, session, data, global_steps=None, summary_writer=None):
 
     pearson_r = pearsonr(sim, target)[0]
 
-    dev_summary = tf.summary.scalar('dev_pearson_r', pearson_r)
+    dev_summary = tf.summary.scalar(name="dev_pearson_r", tensor=pearson_r)
 
     dev_summary = session.run(dev_summary)
     if summary_writer:
