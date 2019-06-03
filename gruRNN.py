@@ -9,7 +9,9 @@ class GRURNN(object):
                 used_cell = tf.contrib.rnn.GRUCell(num_units=self.hidden_neural_size,
                                                    reuse=tf.get_variable_scope().reuse,
                                                    kernel_initializer=tf.initializers.glorot_normal(seed=19260817,
-                                                                                                    dtype=tf.float64))  # 加入注意力机制  # used_cell = tf.contrib.rnn.AttentionCellWrapper(used_cell, attn_length=attn_len, reuse=reuse)
+                                                                                                    dtype=tf.float64))  
+                # 加入注意力机制  
+                # used_cell = tf.contrib.rnn.AttentionCellWrapper(used_cell, attn_length=attn_len, reuse=reuse)
 
         with tf.variable_scope('cell_init_state' + scope, reuse=reuse, dtype=tf.float64):
             self.cell_init_state = used_cell.zero_state(batch_size=self.batch_size, dtype=tf.float64)
@@ -20,6 +22,8 @@ class GRURNN(object):
         return outs
 
     def __init__(self, config, sess, is_training=True):
+        
+        self.lr = config.lr;
         self.batch_size = config.batch_size
 
         num_step = config.num_step
@@ -52,14 +56,13 @@ class GRURNN(object):
             # 损失函数为MSE
             self.mse = tf.reduce_mean(tf.square(tf.subtract(self.sim, self.target)))
 
-        # add summary
-        mse_summary = tf.summary.scalar('mse_summary', self.mse)
+        # 加入摘要
+        mse_summary = tf.summary.scalar(name="mse_summary", tensor=self.mse)
 
         if not is_training:
             return
 
         self.globle_step = tf.Variable(0, name="globle_step", trainable=False)
-        self.lr = tf.Variable(0.0, trainable=False, dtype=tf.float64)
 
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.mse, tvars), config.max_grad_norm)
@@ -73,6 +76,7 @@ class GRURNN(object):
                 grad_summaries.append(sparsity_summary)
         self.grad_summaries_merged = tf.summary.merge(grad_summaries)
         self.summary = tf.summary.merge([mse_summary, self.grad_summaries_merged])
+
 
         optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.lr, epsilon=1e-6)
         # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.lr)
