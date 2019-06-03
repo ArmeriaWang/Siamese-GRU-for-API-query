@@ -24,10 +24,9 @@ flags.DEFINE_integer('check_point_every', 1, 'checkpoint every num epoch ')
 # 载入数据集
 print("Loading dataset...")
 
-data = data_helper.load_data(max_len=FLAGS.max_len, 
-    data_path='./data/train_valid.pickle', embed_dim=FLAGS.emdedding_dim)
-test_data = data_helper.load_data(max_len=FLAGS.max_len, 
-    data_path='./data/test.pickle', embed_dim=FLAGS.emdedding_dim)
+data = data_helper.load_data(max_len=FLAGS.max_len, data_path='./data/train_valid.pickle',
+                             embed_dim=FLAGS.emdedding_dim)
+test_data = data_helper.load_data(max_len=FLAGS.max_len, data_path='./data/test.pickle', embed_dim=FLAGS.emdedding_dim)
 
 print("length of train set:", len(data[0]))
 print("length of test set:", len(test_data[0]))
@@ -44,6 +43,7 @@ class Config(object):
     out_dir = FLAGS.out_dir
     max_len = FLAGS.max_len
     checkpoint_every = FLAGS.check_point_every
+
 
 def cut_data(data, rate):
     x1, x2, y, mask_x1, mask_x2 = data
@@ -72,6 +72,7 @@ def cut_data(data, rate):
     valid_data = [valid_x1, valid_x2, valid_y, valid_m1, valid_m2]
 
     return train_data, valid_data
+
 
 # 验证
 def evaluate(model, session, data, global_steps=None, summary_writer=None):
@@ -124,8 +125,7 @@ def run_epoch(model, session, data, global_steps, valid_model, valid_data, train
         train_summary_writer.flush()
 
         if (global_steps % 100 == 0):
-            valid_cost, valid_pearson_r = evaluate(valid_model, session, valid_data, global_steps,
-                                                   valid_summary_writer)
+            valid_cost, valid_pearson_r = evaluate(valid_model, session, valid_data, global_steps, valid_summary_writer)
             print(
                 "the %i step, train cost is: %f, the train pearson_r is %f, the valid cost is %f, the valid pearson_r is %f" % (
                     global_steps, mse, pearson_r, valid_cost, valid_pearson_r))
@@ -155,7 +155,6 @@ def train_step():
         dev_summary_dir = os.path.join(eval_config.out_dir, "summaries", "dev")
         dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, session.graph)
 
-
         # 创建检查点
         pre_epoch = 0
         global_steps = 1;
@@ -180,7 +179,6 @@ def train_step():
             tf.global_variables_initializer().run()
 
         print("Prepare finished")
-
 
         begin_time = int(time.time())
 
