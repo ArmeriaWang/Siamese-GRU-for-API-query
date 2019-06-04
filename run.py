@@ -11,12 +11,12 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('batch_size', 128, 'the batch_size of the training procedure')
-flags.DEFINE_float('lr', 0.0002, 'the learning rate')
+flags.DEFINE_float('lr', 0.00015, 'the learning rate')
 flags.DEFINE_integer('max_grad_norm', 5, 'max_grad_norm')
 flags.DEFINE_integer('emdedding_dim', 20, 'embedding dim')
 flags.DEFINE_integer('hidden_neural_size', 25, 'GRU hidden neural size')
 flags.DEFINE_integer('max_len', 25, 'max_len of training sentence')
-flags.DEFINE_integer('num_epoch', 500, 'num epoch')
+flags.DEFINE_integer('num_epoch', 1500, 'num epoch')
 
 flags.DEFINE_string('out_dir', os.path.abspath(os.path.join(os.path.curdir, "run_gen")), 'output directory')
 flags.DEFINE_integer('check_point_every', 1, 'checkpoint every num epoch ')
@@ -108,14 +108,16 @@ def evaluate(model, session, data, global_steps=None, summary_writer=None):
 def run_epoch(model, session, data, global_steps, valid_model, valid_data, train_summary_writer,
               valid_summary_writer=None):
     for step, (s1, s2, y, mask_s1, mask_s2) in enumerate(data_helper.batch_iter(data, batch_size=FLAGS.batch_size)):
+        
+        if (len(s1) < FLAGS.batch_size):
+            continue
+        
         feed_dict = {}
         feed_dict[model.input_data_s1] = s1
         feed_dict[model.input_data_s2] = s2
         feed_dict[model.target] = y
         feed_dict[model.mask_s1] = mask_s1
         feed_dict[model.mask_s2] = mask_s2
-        if (len(s1) < FLAGS.batch_size):
-            continue
         fetches = [model.mse, model.sim, model.target, model.train_op, model.summary]
         mse, sim, target, _, summary = session.run(fetches, feed_dict)
 
@@ -194,7 +196,7 @@ def train_step():
             if i % config.checkpoint_every == 0:
                 path = saver.save(session, checkpoint_prefix, global_steps)
                 with open(count_rec_dir_name, 'w') as f:
-                    f.write(str(i + 1) + " " + str(global_steps))
+                    f.write(str(i + 1) + " " + str(global_steps + 1))
                 print("Saved model chechpoint to{}\n".format(path))
 
         print("the train is finished")

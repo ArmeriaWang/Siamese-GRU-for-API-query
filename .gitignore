@@ -117,8 +117,3 @@ dmypy.json
 # IDEA
 .idea
 *.local
-*.meta
-*.index
-run_gen/checkpoints/count_rec.txt
-run_gen/checkpoints/checkpoint
-*.data-00000-of-00001

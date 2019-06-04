@@ -1,0 +1,3 @@
+model_checkpoint_path: "/Users/yeawhk/CS_work/Siamese-GRU-for-API-query/Siamese-GRU-for-API-query/run_gen/checkpoints/model-618817"
+all_model_checkpoint_paths: "/Users/yeawhk/CS_work/Siamese-GRU-for-API-query/Siamese-GRU-for-API-query/run_gen/checkpoints/model-618466"
+all_model_checkpoint_paths: "/Users/yeawhk/CS_work/Siamese-GRU-for-API-query/Siamese-GRU-for-API-query/run_gen/checkpoints/model-618817"
