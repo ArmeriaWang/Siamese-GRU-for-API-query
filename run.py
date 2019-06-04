@@ -75,14 +75,14 @@ def cut_data(data, rate):
 
 
 # 验证
-def evaluate(model, session, data, global_steps=None, summary_writer=None):
+def evaluate(model, session, data, config, global_steps=None, summary_writer=None):
     x1, x2, y, mask_x1, mask_x2 = data
 
-    x1 = x1[:FLAGS.batch_size]
-    x2 = x2[:FLAGS.batch_size]
-    y = y[:FLAGS.batch_size]
-    mask_x1 = mask_x1[:FLAGS.batch_size]
-    mask_x2 = mask_x2[:FLAGS.batch_size]
+    x1 = x1[:config.batch_size]
+    x2 = x2[:config.batch_size]
+    y = y[:config.batch_size]
+    mask_x1 = mask_x1[:config.batch_size]
+    mask_x2 = mask_x2[:config.batch_size]
 
     fetches = [model.mse, model.sim, model.target]
     feed_dict = {}
@@ -111,7 +111,7 @@ def run_epoch(model, session, data, global_steps, valid_model, valid_data, train
         
         if (len(s1) < FLAGS.batch_size):
             continue
-        
+
         feed_dict = {}
         feed_dict[model.input_data_s1] = s1
         feed_dict[model.input_data_s2] = s2
@@ -127,7 +127,7 @@ def run_epoch(model, session, data, global_steps, valid_model, valid_data, train
         train_summary_writer.flush()
 
         if (global_steps % 100 == 0):
-            valid_cost, valid_pearson_r = evaluate(valid_model, session, valid_data, global_steps, valid_summary_writer)
+            valid_cost, valid_pearson_r = evaluate(valid_model, session, valid_data, config, global_steps, valid_summary_writer)
             print(
                 "the %i step, train cost is: %f, the train pearson_r is %f, the valid cost is %f, the valid pearson_r is %f" % (
                     global_steps, mse, pearson_r, valid_cost, valid_pearson_r))
@@ -140,6 +140,7 @@ def run_epoch(model, session, data, global_steps, valid_model, valid_data, train
 def train_step():
     config = Config()
     eval_config = Config()
+    eval_config.batch_size = len(test_data[0])
 
     with tf.Graph().as_default(), tf.Session() as session:
         initializer = tf.initializers.glorot_normal(seed=20000623, dtype=tf.float64)
@@ -170,6 +171,7 @@ def train_step():
         ckpt = tf.train.latest_checkpoint(checkpoint_dir)
         if ckpt != None:
             saver.restore(session, ckpt)
+            # 从count_rec.txt里读取上次训练的global_steps和epoch编号
             with open(count_rec_dir_name, 'r') as f:
                 pre_epoch, global_steps = (f.read()).split()
                 pre_epoch = int(pre_epoch)
@@ -202,7 +204,7 @@ def train_step():
         print("the train is finished")
         end_time = int(time.time())
         print("training takes %d seconds already\n" % (end_time - begin_time))
-        test_cost, test_pearson_r = evaluate(test_model, session, test_data)
+        test_cost, test_pearson_r = evaluate(test_model, session, test_data, eval_config)
         print("the test data cost is %f" % test_cost)
         print("the test data pearson_r is %f" % test_pearson_r)
 
