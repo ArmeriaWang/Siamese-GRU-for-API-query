@@ -117,3 +117,7 @@ dmypy.json
 # IDEA
 .idea
 run_gen
+*.local
+*.meta
+*.index
+*.data-00000-of-00001

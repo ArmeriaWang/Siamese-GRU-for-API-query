@@ -19,6 +19,7 @@ def load_set(data_path, embed_dim):
 # 根据max_len对数据集格式化
 def load_data(max_len, data_path, embed_dim):
     data_set = load_set(data_path, embed_dim)
+
     data_set_x1, data_set_x2, data_set_y = data_set
 
     n_samples = len(data_set_x1)
@@ -43,7 +44,7 @@ def load_data(max_len, data_path, embed_dim):
 
     def padding_and_generate_mask(x1, x2, y, new_x1, new_x2, new_y, mask_x1, mask_x2):
         for i, (x1, x2, y) in enumerate(zip(x1, x2, y)):
-            new_y[i] = y;
+            new_y[i] = y
             if len(x1) <= max_len:
                 new_x1[i, 0:len(x1)] = x1
                 mask_x1[i, len(x1) - 1] = 1
@@ -60,7 +61,6 @@ def load_data(max_len, data_path, embed_dim):
         new_set = [new_x1, new_x2, new_y, mask_x1, mask_x2]
         del new_x1, new_x2, new_y
         return new_set
-
 
     final_set = padding_and_generate_mask(data_set[0], data_set[1], data_set[2], new_data_set_x1, new_data_set_x2,
                                           new_data_set_y, mask_x1, mask_x2)

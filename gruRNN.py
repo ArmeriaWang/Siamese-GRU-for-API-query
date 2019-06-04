@@ -6,9 +6,11 @@ class GRURNN(object):
     def singleRNN(self, x, attn_len, scope, cell='gru', reuse=None):
         if cell == 'gru':
             with tf.variable_scope('grucell' + scope, reuse=reuse, dtype=tf.float64):
-                used_cell = tf.contrib.rnn.GRUCell(num_units=self.hidden_neural_size, reuse=tf.get_variable_scope().reuse,
-                    kernel_initializer=tf.initializers.glorot_normal(seed=19260817, dtype=tf.float64))
-                # 加入注意力机制
+                used_cell = tf.contrib.rnn.GRUCell(num_units=self.hidden_neural_size,
+                                                   reuse=tf.get_variable_scope().reuse,
+                                                   kernel_initializer=tf.initializers.glorot_normal(seed=19260817,
+                                                                                                    dtype=tf.float64))  
+                # 加入注意力机制  
                 # used_cell = tf.contrib.rnn.AttentionCellWrapper(used_cell, attn_length=attn_len, reuse=reuse)
 
         with tf.variable_scope('cell_init_state' + scope, reuse=reuse, dtype=tf.float64):
@@ -34,8 +36,10 @@ class GRURNN(object):
         self.hidden_neural_size = config.hidden_neural_size
         # cell_outputs2的reuse为True，表示两个RNN共用一套参数
         with tf.name_scope('gru_output_layer'):
-            self.cell_outputs1 = self.singleRNN(x=self.input_data_s1, attn_len=config.max_len, scope='side1', cell='gru', reuse=None)
-            self.cell_outputs2 = self.singleRNN(x=self.input_data_s2, attn_len=config.max_len, scope='side1', cell='gru', reuse=True)
+            self.cell_outputs1 = self.singleRNN(x=self.input_data_s1, attn_len=config.max_len, scope='side1',
+                                                cell='gru', reuse=None)
+            self.cell_outputs2 = self.singleRNN(x=self.input_data_s2, attn_len=config.max_len, scope='side1',
+                                                cell='gru', reuse=True)
 
         with tf.name_scope('Sentence_Layer'):
             # 此处得到句子向量，通过调整mask，可以改变句子向量的组成方式
@@ -44,21 +48,24 @@ class GRURNN(object):
             self.sent2 = tf.reduce_sum(self.cell_outputs2 * self.mask_s2[:, :, None], axis=1)
 
         with tf.name_scope('loss'):
-            diff = tf.abs(tf.subtract(self.sent1, self.sent2), name='err_l1')
+            diff = tf.abs(tf.subtract(self.sent1, self.sent2), name="err_l1")
             diff = tf.reduce_sum(diff, axis=1)
             # 预测结果被定义为两个RNN末尾输出的差向量的一阶范数的exp
             self.sim = tf.clip_by_value(tf.exp(-1.0 * diff), 1e-7, 1.0 - 1e-7)
             # 损失函数为MSE
             self.mse = tf.reduce_mean(tf.square(tf.subtract(self.sim, self.target)))
-            
-        # add summary
-        mse_summary = tf.summary.scalar(name="mse_summary", tensor=self.mse)
+
+
+        # 加入摘要
+        mse_summary = tf.summary.scalar(name="train_mse", tensor=self.mse)
 
         if not is_training:
             return
 
         self.globle_step = tf.Variable(0, name="globle_step", trainable=False)
+
         # self.lr = tf.Variable(0.0, trainable=False, dtype=tf.float64)
+
 
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.mse, tvars), config.max_grad_norm)
