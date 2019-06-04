@@ -20,6 +20,7 @@ class GRURNN(object):
         return outs
 
     def __init__(self, config, sess, is_training=True):
+        self.lr = config.lr;
         self.batch_size = config.batch_size
 
         num_step = config.num_step
@@ -51,13 +52,13 @@ class GRURNN(object):
             self.mse = tf.reduce_mean(tf.square(tf.subtract(self.sim, self.target)))
             
         # add summary
-        mse_summary = tf.summary.scalar('mse_summary', self.mse)
+        mse_summary = tf.summary.scalar(name="mse_summary", tensor=self.mse)
 
         if not is_training:
             return
 
         self.globle_step = tf.Variable(0, name="globle_step", trainable=False)
-        self.lr = tf.Variable(0.0, trainable=False, dtype=tf.float64)
+        # self.lr = tf.Variable(0.0, trainable=False, dtype=tf.float64)
 
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.mse, tvars), config.max_grad_norm)

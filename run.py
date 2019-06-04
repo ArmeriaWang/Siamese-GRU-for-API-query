@@ -1,4 +1,3 @@
-# -*- coding:utf8 -*-
 import tensorflow as tf
 import numpy as np
 import os
@@ -140,6 +139,7 @@ def train_step():
     eval_config = Config()
 
     with tf.Graph().as_default(), tf.Session() as session:
+
         initializer = tf.initializers.glorot_normal(seed=20000623, dtype=tf.float64)
         with tf.variable_scope("model", reuse=None, initializer=initializer):
             model = GRURNN(config=config, sess=session, is_training=True)
