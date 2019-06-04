@@ -22,7 +22,7 @@ class GRURNN(object):
         return outs
 
     def __init__(self, config, sess, is_training=True):
-        self.lr = config.lr;
+        self.lr = config.lr
         self.batch_size = config.batch_size
 
         num_step = config.num_step
