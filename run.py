@@ -4,6 +4,7 @@ import numpy as np
 import os
 import time
 import data_helper
+import pickle
 from gruRNN import GRURNN
 from scipy.stats import pearsonr
 
@@ -27,6 +28,8 @@ print("Loading dataset...")
 data = data_helper.load_data(max_len=FLAGS.max_len, data_path='./data/train_valid.pickle',
                              embed_dim=FLAGS.emdedding_dim)
 test_data = data_helper.load_data(max_len=FLAGS.max_len, data_path='./data/test.pickle', embed_dim=FLAGS.emdedding_dim)
+all_data = data_helper.load_all_data(max_len=FLAGS.max_len, data_path='./data/all.pickle', embed_dim=FLAGS.emdedding_dim)
+
 
 print("length of train set:", len(data[0]))
 print("length of test set:", len(test_data[0]))
@@ -141,6 +144,8 @@ def train_step():
     config = Config()
     eval_config = Config()
     eval_config.batch_size = len(test_data[0])
+    stat_config = Config()
+    stat_config.batch_size = len(all_data[0])
 
     with tf.Graph().as_default(), tf.Session() as session:
         initializer = tf.initializers.glorot_normal(seed=20000623, dtype=tf.float64)
@@ -150,6 +155,7 @@ def train_step():
         with tf.variable_scope("model", reuse=True, initializer=initializer):
             valid_model = GRURNN(config=eval_config, sess=session, is_training=False)
             test_model = GRURNN(config=eval_config, sess=session, is_training=False)
+            stat_model = GRURNN(config=stat_config, sess=session, is_training=False)
 
         # 创建摘要
         train_summary_dir = os.path.join(config.out_dir, "summaries", "train")
@@ -204,9 +210,23 @@ def train_step():
         print("the train is finished")
         end_time = int(time.time())
         print("training takes %d seconds already\n" % (end_time - begin_time))
+
         test_cost, test_pearson_r = evaluate(test_model, session, test_data, eval_config)
         print("the test data cost is %f" % test_cost)
         print("the test data pearson_r is %f" % test_pearson_r)
+
+        print("Writing prediction")
+        input_sent = [all_data[1][i] for i in range(stat_config.batch_size)]
+        print("total: ", len(input_sent))
+        sent_out = session.run(stat_model.sent1, feed_dict={stat_model.input_data_s1:input_sent, stat_model.mask_s1:all_data[2]})
+        sent_represent = {}
+        for i in range(stat_config.batch_size):
+            sent_represent[all_data[0][i]] = sent_out[i]
+        out_file = open('./sent_represent.pickle', 'wb')
+        pickle.dump(sent_represent, out_file)
+        out_file.close()
+        print("Writing done")
+
 
         print("program end!")
 

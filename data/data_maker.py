@@ -107,4 +107,10 @@ if __name__ == '__main__':
     # 构造测试集
     make_data(lower=120000, upper=150000, range_cnt=2000, data_path_name="./test.pickle")
 
-    print("Data making done")
+    print("Making all_data...")
+    all_data = [(biker.corpus.titles_id[i], biker.corpus.titles_vec[i]) for i in range(total)]
+    all_file = open("./all.pickle", 'wb')
+    pickle.dump(all_data, all_file)
+    all_file.close()
+
+    print("ALL Data making done")

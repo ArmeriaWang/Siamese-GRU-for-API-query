@@ -96,3 +96,4 @@ class GRURNN(object):
 
         with tf.name_scope('train'):
             self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+            

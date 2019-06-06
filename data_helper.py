@@ -15,6 +15,16 @@ def load_set(data_path, embed_dim):
         labels.append(float(item[0]))
     return [s0, s1, labels]
 
+def load_all_set(data_path, embed_dim):
+    with open(data_path, 'rb') as f:
+        data_list = pickle.load(f)
+    sent_id = []
+    sent_vec = []
+    for item in data_list:
+        sent_id.append(item[0])
+        sent_vec.append(item[1])
+    return [sent_id, sent_vec]
+
 
 # 根据max_len对数据集格式化
 def load_data(max_len, data_path, embed_dim):
@@ -65,6 +75,33 @@ def load_data(max_len, data_path, embed_dim):
                                           new_data_set_y, mask_x1, mask_x2)
     return final_set
 
+
+def load_all_data(max_len, data_path, embed_dim):
+    data_set = load_all_set(data_path, embed_dim)
+
+    n_samples = len(data_set[0])
+
+    new_id = np.zeros([n_samples])
+    new_x  = np.zeros([n_samples, max_len, embed_dim], dtype=float)
+    # mask用于标记句子结束位置
+    mask_x = np.zeros([n_samples, max_len])
+
+    def padding_and_generate_mask(data_id, data_x, new_id, new_x, mask_x):
+        for i, (sid, x) in enumerate(zip(data_id, data_x)):
+            new_id[i] = sid
+            if len(x) <= max_len:
+                new_x[i, 0:len(x)] = x
+                mask_x[i, len(x) - 1] = 1
+            else:
+                new_x[i, :, :] = (x[0:maxlen])
+                mask_x[i, max_len - 1] = 1
+
+        new_set = [new_id, new_x, mask_x]
+        del new_id, new_x, mask_x
+        return new_set
+
+    final_set = padding_and_generate_mask(data_set[0], data_set[1], new_id, new_x, mask_x)
+    return final_set
 
 # 划分batch
 def batch_iter(data, batch_size):
