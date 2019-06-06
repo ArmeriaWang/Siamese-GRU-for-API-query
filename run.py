@@ -216,24 +216,15 @@ def train_step():
         print("the test data pearson_r is %f" % test_pearson_r)
 
         print("Writing prediction")
-
-        # 原始问句矩阵（模型输入）
-        sent_vec = [all_data[1][i] for i in range(stat_config.batch_size)]
-        print("total: ", len(sent_vec))
-
-        # 获得问句特征向量（模型输出）
-        sent_out = session.run(stat_model.sent1, feed_dict={stat_model.input_data_s1:sent_vec, stat_model.mask_s1:all_data[2]})
-        
-        # 问句id到问句特征向量的字典
+        input_sent = [all_data[1][i] for i in range(stat_config.batch_size)]
+        print("total: ", len(input_sent))
+        sent_out = session.run(stat_model.sent1, feed_dict={stat_model.input_data_s1:input_sent, stat_model.mask_s1:all_data[2]})
         sent_represent = {}
         for i in range(stat_config.batch_size):
             sent_represent[all_data[0][i]] = sent_out[i]
-
-        # pickle输出文件
         out_file = open('./sent_represent.pickle', 'wb')
         pickle.dump(sent_represent, out_file)
         out_file.close()
-
         print("Writing done")
 
 
